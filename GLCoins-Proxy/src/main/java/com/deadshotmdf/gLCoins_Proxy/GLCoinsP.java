@@ -22,7 +22,7 @@ public class GLCoinsP {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        informationHolder = new InformationHolder();
+        informationHolder = new InformationHolder(logger);
         server.getEventManager().register(this, new PluginListener());
     }
 }
