@@ -12,6 +12,7 @@ public class GLCoinsP {
 
     private final ProxyServer server;
     private final Logger logger;
+    private InformationHolder informationHolder;
 
     @Inject
     public GLCoinsP(ProxyServer server, Logger logger) {
@@ -21,6 +22,7 @@ public class GLCoinsP {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        informationHolder = new InformationHolder();
         server.getEventManager().register(this, new PluginListener());
     }
 }
