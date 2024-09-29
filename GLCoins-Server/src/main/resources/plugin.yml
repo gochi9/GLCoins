@@ -3,3 +3,7 @@ version: '1.0-SNAPSHOT'
 main: com.deadshotmdf.gLCoins_Server.GLCoinsS
 api-version: '1.21'
 authors: [ DeadshotMDF ]
+libraries:
+  - com.zaxxer:HikariCP:6.0.0
+commands:
+  shit:
