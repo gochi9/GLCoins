@@ -23,14 +23,14 @@ public class DatabaseTest {
 
     private static final CompletableFuture<Double> NULL_VALUE = CompletableFuture.completedFuture(null);
 
-    public DatabaseTest(Executor mainThreadExecutor, Logger logger, String url, String user, String password) {
+    public DatabaseTest(Executor mainThreadExecutor, Logger logger) {
         this.mainThreadExecutor = mainThreadExecutor;
         this.logger = logger;
         this.random = new Random();
         this.interacted = new HashMap<>();
 
         try {
-            this.dataSource = new HikariDataSource(getHikariConfig(url, user, password));
+            this.dataSource = new HikariDataSource(getHikariConfig("jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting"));
 
             try (Connection connection = dataSource.getConnection();
                  Statement stmt = connection.createStatement()) {

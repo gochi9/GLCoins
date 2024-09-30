@@ -16,7 +16,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
 
     @Override
     public void onEnable() {
-        test = new DatabaseTest(new BukkitMainThreadExecutor(this), this.getLogger(),"jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
+        test = new DatabaseTest(new BukkitMainThreadExecutor(this), this.getLogger());
         this.getCommand("shit").setExecutor(this);
     }
 
