@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.time.StopWatch;
 
+import java.nio.ByteBuffer;
 import java.sql.*;
 import java.util.Random;
 import java.util.UUID;
@@ -16,22 +17,27 @@ public class DatabaseTest {
 
     public DatabaseTest(String url, String user, String password) {
         try {
-
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(url);
             config.setUsername(user);
             config.setPassword(password);
-            config.setDriverClassName("org.postgresql.Driver");
-            HikariDataSource dataSource = new HikariDataSource(config);
+            config.addDataSourceProperty("cachePrepStmts", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "250");
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            HikariDataSource  dataSource = new HikariDataSource(config);
             connection = dataSource.getConnection();
 
+//            String dropTableSQL = "DROP TABLE IF EXISTS currency";
+//            try (Statement stmt = connection.createStatement()) {
+//                stmt.executeUpdate(dropTableSQL);
+//            }
+
             String createTableSQL = "CREATE TABLE IF NOT EXISTS currency (\n" +
-                    "    uuid UUID PRIMARY KEY,\n" +
-                    "    value DOUBLE PRECISION\n" +
+                    "    uuid BINARY(16) PRIMARY KEY,\n" +
+                    "    value DOUBLE\n" +
                     ")";
-            try (Statement stmt = connection.createStatement()) {
-                stmt.executeUpdate(createTableSQL);
-            }
+            Statement stmt = connection.createStatement();
+            stmt.executeUpdate(createTableSQL);
 
             insertStmt = connection.prepareStatement("INSERT INTO currency (uuid, value) VALUES (?, ?)");
             selectStmt = connection.prepareStatement("SELECT value FROM currency WHERE uuid = ?");
@@ -42,12 +48,12 @@ public class DatabaseTest {
 
     public void addEntry(UUID uuid, double value, boolean log) {
         try {
-            insertStmt.setObject(1, uuid);
+            insertStmt.setBytes(1, uuidToBytes(uuid));
             insertStmt.setDouble(2, value);
             long start = System.currentTimeMillis();
             insertStmt.executeUpdate();
             if (log)
-                System.out.println("Insert execution time: " + (System.currentTimeMillis() - start) + " ms");
+                System.out.println(System.currentTimeMillis() - start);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -56,21 +62,17 @@ public class DatabaseTest {
     public Double getEntry(UUID uuid) {
         StopWatch stopWatch = StopWatch.createStarted();
         try {
-            selectStmt.setObject(1, uuid);
+            selectStmt.setBytes(1, uuidToBytes(uuid));
             try (ResultSet rs = selectStmt.executeQuery()) {
                 if (rs.next()) {
-                    double value = rs.getDouble("value");
                     stopWatch.stop();
-                    System.out.println("Query execution time: " + stopWatch.getNanoTime() + " ns");
-                    return value;
+                    System.out.println(stopWatch.getNanoTime());
+                    return rs.getDouble("value");
                 } else {
-                    stopWatch.stop();
-                    System.out.println("Query execution time: " + stopWatch.getNanoTime() + " ns (no result found)");
                     return null;
                 }
             }
         } catch (SQLException e) {
-            stopWatch.stop();
             e.printStackTrace();
             return null;
         }
@@ -84,16 +86,15 @@ public class DatabaseTest {
 
             for (int i = 0; i < count; i++) {
                 UUID uuid = UUID.randomUUID();
-                insertStmt.setObject(1, uuid);
+                insertStmt.setBytes(1, uuidToBytes(uuid));
                 insertStmt.setDouble(2, random.nextDouble());
                 insertStmt.addBatch();
             }
 
             insertStmt.executeBatch();
             stopWatch.stop();
-            System.out.println("Batch insert execution time: " + stopWatch.getNanoTime() + " ns");
+            System.out.println(stopWatch.getNanoTime());
         } catch (SQLException e) {
-            stopWatch.stop();
             e.printStackTrace();
         }
     }
@@ -103,13 +104,19 @@ public class DatabaseTest {
             return;
 
         try {
-            if (insertStmt != null) insertStmt.close();
-            if (selectStmt != null) selectStmt.close();
             connection.close();
             System.out.println("Database connection closed.");
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private static byte[] uuidToBytes(UUID uuid) {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return bb.array();
     }
 
 }
