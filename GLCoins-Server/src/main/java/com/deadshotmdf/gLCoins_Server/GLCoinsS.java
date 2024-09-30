@@ -29,7 +29,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         switch(args[0].toLowerCase()) {
             case "add":
-                test.addEntry(UUID.fromString(args[1]), Double.parseDouble(args[2]), null);
+                test.modifyEntry(UUID.fromString(args[1]), Double.parseDouble(args[2]), ModifyType.SET, null);
                 return true;
             case "bulk":
                 Bukkit.getScheduler().runTaskAsynchronously(this, () -> {

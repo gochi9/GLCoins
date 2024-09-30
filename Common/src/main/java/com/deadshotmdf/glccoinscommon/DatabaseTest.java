@@ -74,19 +74,6 @@ public class DatabaseTest {
                 });
     }
 
-    public void addEntry(UUID uuid, double value, Connection connection) {
-        try (Connection conn = connection != null && !connection.isClosed() ? connection : dataSource.getConnection();
-             PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO currency (uuid, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = value")) {
-
-            insertStmt.setBytes(1, uuidToBytes(uuid));
-            insertStmt.setDouble(2, value);
-            insertStmt.executeUpdate();
-        }
-        catch (SQLException e) {
-            this.logger.warning(e.getMessage());
-        }
-    }
-
     public void modifyEntry(UUID uuid, double value, ModifyType modifyType, Connection connection) {
         String sql = switch (modifyType) {
             case ADD -> "INSERT INTO currency (uuid, value) VALUES (?, ?) " +
@@ -144,7 +131,7 @@ public class DatabaseTest {
                     if (rs.next())
                         return rs.getDouble("value");
 
-                    addEntry(uuid, 0.0, conn);
+                    modifyEntry(uuid, 0.0, ModifyType.SET, conn);
                     return 0.0;
                 }
             }
