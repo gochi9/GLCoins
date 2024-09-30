@@ -3,13 +3,13 @@ package com.deadshotmdf.gLCoins_Server;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.sql.*;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 
 public class DatabaseTest {
 
@@ -57,7 +57,7 @@ public class DatabaseTest {
             }
         }
         catch (SQLException e) {
-            this.logger.warn(e.getMessage());
+            this.logger.warning(e.getMessage());
             return null;
         }
     }
@@ -71,7 +71,7 @@ public class DatabaseTest {
             insertStmt.executeUpdate();
         } 
         catch (SQLException e) {
-            this.logger.warn(e.getMessage());
+            this.logger.warning(e.getMessage());
         }
     }
 
@@ -94,7 +94,7 @@ public class DatabaseTest {
             System.out.println("Batch insert took: " + stopWatch.getNanoTime() + " ns");
         }
         catch (SQLException e) {
-            this.logger.warn(e.getMessage());
+            this.logger.warning(e.getMessage());
         }
     }
 

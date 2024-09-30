@@ -5,7 +5,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.slf4j.Logger;
 
 import java.util.UUID;
 
@@ -15,7 +14,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
 
     @Override
     public void onEnable() {
-        test = new DatabaseTest((Logger) this.getLogger(),"jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
+        test = new DatabaseTest(this.getLogger(),"jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
         this.getCommand("shit").setExecutor(this);
     }
 
