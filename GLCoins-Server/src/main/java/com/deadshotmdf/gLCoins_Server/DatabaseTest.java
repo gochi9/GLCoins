@@ -3,86 +3,84 @@ package com.deadshotmdf.gLCoins_Server;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.sql.*;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class DatabaseTest {
 
-    private Connection connection;
-    private PreparedStatement insertStmt;
-    private PreparedStatement selectStmt;
+    private final Logger logger;
+    private final HikariDataSource dataSource;
 
-    public DatabaseTest(String url, String user, String password) {
+    public DatabaseTest(Logger logger, String url, String user, String password) {
+        this.logger = logger;
         try {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(url);
-            config.setUsername(user);
-            config.setPassword(password);
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            HikariDataSource  dataSource = new HikariDataSource(config);
-            connection = dataSource.getConnection();
+            this.dataSource = new HikariDataSource(getHikariConfig(url, user, password));
 
-//            String dropTableSQL = "DROP TABLE IF EXISTS currency";
-//            try (Statement stmt = connection.createStatement()) {
-//                stmt.executeUpdate(dropTableSQL);
-//            }
+            try (Connection connection = dataSource.getConnection();
+                 Statement stmt = connection.createStatement()) {
 
-            String createTableSQL = "CREATE TABLE IF NOT EXISTS currency (\n" +
-                    "    uuid BINARY(16) PRIMARY KEY,\n" +
-                    "    value DOUBLE\n" +
-                    ")";
-            Statement stmt = connection.createStatement();
-            stmt.executeUpdate(createTableSQL);
+                stmt.executeUpdate("CREATE TABLE IF NOT EXISTS currency (\n" +
+                        "    uuid BINARY(16) PRIMARY KEY,\n" +
+                        "    value DOUBLE\n)ENGINE=InnoDB");
+            }
 
-            insertStmt = connection.prepareStatement("INSERT INTO currency (uuid, value) VALUES (?, ?)");
-            selectStmt = connection.prepareStatement("SELECT value FROM currency WHERE uuid = ?");
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-    }
-
-    public void addEntry(UUID uuid, double value, boolean log) {
-        try {
-            insertStmt.setBytes(1, uuidToBytes(uuid));
-            insertStmt.setDouble(2, value);
-            long start = System.currentTimeMillis();
-            insertStmt.executeUpdate();
-            if (log)
-                System.out.println(System.currentTimeMillis() - start);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public Double getEntry(UUID uuid) {
-        StopWatch stopWatch = StopWatch.createStarted();
-        try {
-            selectStmt.setBytes(1, uuidToBytes(uuid));
-            try (ResultSet rs = selectStmt.executeQuery()) {
-                if (rs.next()) {
-                    stopWatch.stop();
-                    System.out.println(stopWatch.getNanoTime());
-                    return rs.getDouble("value");
-                } else {
-                    return null;
+        return getEntryInternal(uuid);
+    }
+
+    public CompletableFuture<Double> getEntryAsync(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> getEntryInternal(uuid));
+    }
+
+    private Double getEntryInternal(UUID uuid) {
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement selectStmt = conn.prepareStatement("SELECT value FROM currency WHERE uuid = ?")) {
+                selectStmt.setBytes(1, uuidToBytes(uuid));
+                try (ResultSet rs = selectStmt.executeQuery()) {
+                    if (rs.next()) 
+                        return rs.getDouble("value");
+                    
+                    addEntry(uuid, 0.0, conn);
+                    return 0.0;
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        }
+        catch (SQLException e) {
+            this.logger.warn(e.getMessage());
             return null;
+        }
+    }
+
+    public void addEntry(UUID uuid, double value, Connection connection) {
+        try (Connection conn = connection != null && !connection.isClosed() ? connection : dataSource.getConnection();
+             PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO currency (uuid, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = value")) {
+
+            insertStmt.setBytes(1, uuidToBytes(uuid));
+            insertStmt.setDouble(2, value);
+            insertStmt.executeUpdate();
+        } 
+        catch (SQLException e) {
+            this.logger.warn(e.getMessage());
         }
     }
 
     public void fillRandomEntries(int count) {
         StopWatch stopWatch = StopWatch.createStarted();
-        try {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO currency (uuid, value) VALUES (?, ?)")) {
+
             Random random = new Random();
-            insertStmt.clearBatch();
 
             for (int i = 0; i < count; i++) {
                 UUID uuid = UUID.randomUUID();
@@ -93,22 +91,10 @@ public class DatabaseTest {
 
             insertStmt.executeBatch();
             stopWatch.stop();
-            System.out.println(stopWatch.getNanoTime());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void closeConnection() {
-        if (connection == null)
-            return;
-
-        try {
-            connection.close();
-            System.out.println("Database connection closed.");
+            System.out.println("Batch insert took: " + stopWatch.getNanoTime() + " ns");
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            this.logger.warn(e.getMessage());
         }
     }
 
@@ -117,6 +103,22 @@ public class DatabaseTest {
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
         return bb.array();
+    }
+
+    private static HikariConfig getHikariConfig(String url, String user, String password) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(user);
+        config.setPassword(password);
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "500");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.setMaximumPoolSize(20);
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(600000);
+        config.setMaxLifetime(1800000);
+        config.setLeakDetectionThreshold(2000);
+        return config;
     }
 
 }

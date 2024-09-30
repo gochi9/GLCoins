@@ -5,6 +5,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
 
     @Override
     public void onEnable() {
-        test = new DatabaseTest("jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
+        test = new DatabaseTest((Logger) this.getLogger(),"jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
         this.getCommand("shit").setExecutor(this);
     }
 
@@ -22,7 +23,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         switch(args[0].toLowerCase()) {
             case "add":
-                test.addEntry(UUID.fromString(args[1]), Double.parseDouble(args[2]), true);
+                test.addEntry(UUID.fromString(args[1]), Double.parseDouble(args[2]), null);
                 return true;
             case "bulk":
                 Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
@@ -30,7 +31,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
                 });
                 return true;
             case "retrive":
-                this.getLogger().info(""+test.getEntry(UUID.fromString(args[1])));
+                test.getEntryAsync(UUID.fromString(args[1])).thenAccept(value -> this.getLogger().info(args[1] + ": " + value));
                 return true;
             default:
                 return true;
