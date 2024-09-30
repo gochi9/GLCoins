@@ -1,11 +1,12 @@
 package com.deadshotmdf.gLCoins_Server;
 
+import com.deadshotmdf.glccoinscommon.DatabaseTest;
+import com.deadshotmdf.glccoinscommon.ModifyType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.slf4j.Logger;
 
 import java.util.UUID;
 
@@ -15,8 +16,13 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
 
     @Override
     public void onEnable() {
-        test = new DatabaseTest((Logger) this.getLogger(),"jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
+        test = new DatabaseTest(new BukkitMainThreadExecutor(this), this.getLogger(),"jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting");
         this.getCommand("shit").setExecutor(this);
+    }
+
+    @Override
+    public void onDisable(){
+        test.close();
     }
 
     @Override
@@ -31,8 +37,10 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
                 });
                 return true;
             case "retrive":
-                test.getEntryAsync(UUID.fromString(args[1])).thenAccept(value -> this.getLogger().info(args[1] + ": " + value));
+                test.getEntryPartialAsync(null, UUID.fromString(args[1])).thenAccept(value -> this.getLogger().info(args[1] + ": " + value));
                 return true;
+            case "modify":
+                test.modifyEntry(UUID.fromString(args[1]), Double.parseDouble(args[2]), ModifyType.valueOf(args[3].toUpperCase()), null);
             default:
                 return true;
         }
