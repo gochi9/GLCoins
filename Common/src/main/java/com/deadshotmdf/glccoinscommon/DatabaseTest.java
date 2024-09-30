@@ -30,7 +30,7 @@ public class DatabaseTest {
         this.interacted = new HashMap<>();
 
         try {
-            this.dataSource = new HikariDataSource(getHikariConfig("jdbc:mysql://0.0.0.0:3306/testing", "root", "glcpasswordfortesting"));
+            this.dataSource = new HikariDataSource(getHikariConfig("jdbc:mysql://localhost:3306/testing", "root", "glcpasswordfortesting"));
 
             try (Connection connection = dataSource.getConnection();
                  Statement stmt = connection.createStatement()) {
