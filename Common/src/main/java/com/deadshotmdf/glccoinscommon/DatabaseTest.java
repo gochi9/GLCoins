@@ -63,7 +63,7 @@ public class DatabaseTest {
                 });
     }
 
-    //This method will extract the value from the database async, and will run the rest of the code we run back on minecraft's main thread
+    //This method will extract the value from the database async, and will run the rest of the code back on minecraft's main thread
     //We can fully and safely use minecraft stuff without fucking shit up
     //There is a one tick (50ms) delay at the very least until this method is fully ran after the value has been extract from the database
     public CompletableFuture<Double> getEntryPartialAsync(UUID initiator, UUID uuid) {
