@@ -156,8 +156,7 @@ public class CoinDatabase {
     }
 
     /**
-     * Used by the main plugin to close out any connections when the server stops
-     * Not meant for API usage
+     * Used by the main plugin to close out any connections when the server stops. Not meant for API usage.
      */
     public void close() {
         if (this.dataSource != null && !this.dataSource.isClosed())
