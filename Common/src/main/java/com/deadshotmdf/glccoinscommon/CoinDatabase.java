@@ -51,9 +51,9 @@ public class CoinDatabase {
     /**
      *
      * Runs everything on the main thread. Worst performance variant.
-     * <p/>
+     * <p>
      * For whatever the fuck reason we might need this idk.
-     * <p/>
+     * <p>
      * @param initiator The player who requested the entry, this applies a 1.1 seconds cooldown for the initiator, use null if the initiator is non-player which won't check for a cooldown and won't apply one
      * @param uuid The UUID used for the query to retrieve the current GLCoins amount
      * @param connection A connection if you have access to one that can be reused. If the provided connection is null, or closed then this method will retrieve a new connection.
@@ -64,9 +64,9 @@ public class CoinDatabase {
     }
     /**
      * This method will fully run async, the best performance of the three variants.
-     * <p/>
+     * <p>
      * Since this runs async, that means we are limited in what we can do with the value while using miencraft's api.
-     * <p/>
+     * <p>
      * @param initiator The player who requested the entry, this applies a 1.1 seconds cooldown for the initiator, use null if the initiator is non-player which won't check for a cooldown and won't apply one
      * @param uuid The UUID used for the query to retrieve the current GLCoins amount
      * @param connection A connection if you have access to one that can be reused. If the provided connection is null, or closed then this method will retrieve a new connection.
@@ -83,9 +83,9 @@ public class CoinDatabase {
     /**
      * This method will extract the value from the database async, and will run the rest of the code back on minecraft's main thread.
      * We can fully and safely use minecraft stuff without fucking shit up.
-     * <p/>
+     * <p>
      * There is a one tick (50ms) delay at the very least until this method is fully ran after the value has been extract from the database. This is due to the fact that we need to schedule this code to run on the main thread again, and that only takes places on the next tick of the server. Nothing we can do around that.
-     * <p/>
+     * <p>
      * @param initiator The player who requested the entry, this applies a 1.1 seconds cooldown for the initiator, use null if the initiator is non-player which won't check for a cooldown and won't apply one
      * @param uuid The UUID used for the query to retrieve the current GLCoins amount
      * @param connection A connection if you have access to one that can be reused. If the provided connection is null, or closed then this method will retrieve a new connection.
@@ -101,9 +101,9 @@ public class CoinDatabase {
 
     /**
      * This method executes fully on the main thread = worst performance.
-     * <p/>
+     * <p>
      * Modifies the value for an entry. You can add, remove to the current value of the UUID, or set it to something else.
-     * <p/>
+     * <p>
      * If UUID is not present, it'll set the initial balance to 0.0, modify that with the provided @value and @modifyType and insert it into the database as well
      *
      * @param uuid The uuid that is going to be modified, or added if it is not already present
@@ -117,9 +117,9 @@ public class CoinDatabase {
 
     /**
      * This method executes fully async = best performance, limited minecraft API usage.
-     * <p/>
+     * <p>
      * Modifies the value for an entry. You can add, remove to the current value of the UUID, or set it to something else.
-     * <p/>
+     * <p>
      * If UUID is not present, it'll set the initial balance to 0.0, modify that with the provided @value and @modifyType and insert it into the database as well
      *
      * @param uuid The uuid that is going to be modified, or added if it is not already present
@@ -137,9 +137,9 @@ public class CoinDatabase {
 
     /**
      * This method will modify, and extract the new value from the database async, and will run the rest of the code back on minecraft's main thread.
-     * <p/>
+     * <p>
      * Modifies the value for an entry. You can add, remove to the current value of the UUID, or set it to something else.
-     * <p/>
+     * <p>
      * If UUID is not present, it'll set the initial balance to 0.0, modify that with the provided @value and @modifyType and insert it into the database as well
      *
      * @param uuid The uuid that is going to be modified, or added if it is not already present
@@ -251,13 +251,13 @@ public class CoinDatabase {
 
     /**
      * This method will run ASYNC.
-     * <p/>
+     * <p>
      * Easy way to fill the database in case we don't already have a script that does that.
-     * <p/>
+     * <p>
      * Prints at the end the amount of time it took to complete.
-     * <p/>
+     * <p>
      * Adding 10k entries takes about 80 seconds to complete.
-     * </p>
+     * <p>
      * @param count The amount of random entries that will be added to the database.
      * @return The amount in nanoseconds it took this operation to complete
      */
@@ -267,13 +267,13 @@ public class CoinDatabase {
 
     /**
      * This method will run on the MAIN thread. Adding a large volume will crash the server.
-     * <p/>
+     * <p>
      * Easy way to fill the database in case we don't already have a script that does that.
-     * <p/>
+     * <p>
      * Prints at the end the amount of time it took to complete.
-     * <p/>
+     * <p>
      * Adding 10k entries takes about 80 seconds to complete.
-     * <p/>
+     * <p>
      * @param count The amount of random entries that will be added to the database.
      * @return The amount in nanoseconds it took this operation to complete
      */
