@@ -35,6 +35,8 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
             registerWrapper(economy.get());
         else
             tryAgainOnStart();
+
+        Bukkit.getPluginManager().registerEvents(new DeductTaxListener(), this);
     }
 
     @Override
