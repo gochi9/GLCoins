@@ -14,15 +14,15 @@ public class DeductTaxListener implements Listener {
             return;
 
         double totalValue = ev.getAmount();
-        double taxedAmount = ev.getAmount() * (1 - 0.15);
-        //15% tax
+        double taxedAmount = ev.getAmount() * (1 - 0.08);
+        //8% tax
         ev.setAmount(taxedAmount);
 
         OfflinePlayer offlinePlayer = ev.getOfflinePlayer();
 
         if(offlinePlayer.isOnline())
             offlinePlayer.getPlayer().sendMessage(ChatColor.RED + "You have been taxed "
-                    + ChatColor.GOLD + "15%"
+                    + ChatColor.GOLD + "8%"
                     + ChatColor.RED + " of your total "
                     + ChatColor.AQUA + String.format("%s", totalValue)
                     + ChatColor.RED + " ("
