@@ -6,7 +6,11 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import java.text.DecimalFormat;
+
 public class DeductTaxListener implements Listener {
+
+    private static final DecimalFormat df = new DecimalFormat("0.00");
 
     @EventHandler
     public void onDeductTax(PlayerDepositEvent ev) {
@@ -26,8 +30,14 @@ public class DeductTaxListener implements Listener {
                     + ChatColor.RED + " of your total "
                     + ChatColor.AQUA + String.format("%s", totalValue)
                     + ChatColor.RED + " ("
-                    + ChatColor.GREEN + String.format("%s", totalValue - taxedAmount)
+                    + ChatColor.GREEN + String.format("%s", getDigits(totalValue - taxedAmount))
                     + ChatColor.RED + ").");
+    }
+
+    public static String getDigits(double number) {
+        String formattedNumber = df.format(number);
+
+        return formattedNumber.endsWith(".00") ? formattedNumber.substring(0, formattedNumber.indexOf('.')) : formattedNumber;
     }
 
 }
