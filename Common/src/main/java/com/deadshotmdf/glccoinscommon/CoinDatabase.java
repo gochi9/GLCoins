@@ -201,26 +201,25 @@ public class CoinDatabase {
     private Double modifyEntryInternal(UUID uuid, double value, ModifyType modifyType, Connection connection) {
         String sql = switch (modifyType) {
             case ADD -> "INSERT INTO currency (uuid, value) VALUES (?, ?) " +
-                    "ON DUPLICATE KEY UPDATE value = value + VALUES(value) " +
-                    "RETURNING value";
-
+                    "ON DUPLICATE KEY UPDATE value = value + VALUES(value)";
             case REMOVE -> "INSERT INTO currency (uuid, value) VALUES (?, -?) " +
-                    "ON DUPLICATE KEY UPDATE value = value + VALUES(value) " +
-                    "RETURNING value";
-
+                    "ON DUPLICATE KEY UPDATE value = value + VALUES(value)";
             case SET -> "INSERT INTO currency (uuid, value) VALUES (?, ?) " +
-                    "ON DUPLICATE KEY UPDATE value = VALUES(value) " +
-                    "RETURNING value";
+                    "ON DUPLICATE KEY UPDATE value = VALUES(value)";
         };
 
-        try (Connection conn = connection != null && !connection.isClosed() ? connection : dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = connection != null && !connection.isClosed() ? connection : dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setBytes(1, uuidToBytes(uuid));
+                stmt.setDouble(2, value);
+                stmt.executeUpdate();
+            }
 
-            stmt.setBytes(1, uuidToBytes(uuid));
-            stmt.setDouble(2, value);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? rs.getDouble("value") : 0.0;
+            try (PreparedStatement selectStmt = conn.prepareStatement("SELECT value FROM currency WHERE uuid = ?")) {
+                selectStmt.setBytes(1, uuidToBytes(uuid));
+                try (ResultSet rs = selectStmt.executeQuery()) {
+                    return rs.next() ? rs.getDouble("value") : 0.0;
+                }
             }
         } catch (SQLException e) {
             this.logger.warning(e.getMessage());
