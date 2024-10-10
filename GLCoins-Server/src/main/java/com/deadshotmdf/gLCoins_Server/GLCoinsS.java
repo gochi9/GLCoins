@@ -2,9 +2,13 @@ package com.deadshotmdf.gLCoins_Server;
 
 import com.deadshotmdf.gLCoins_Server.events.economy.EconomyEventsAvailableEvent;
 import com.deadshotmdf.glccoinscommon.CoinDatabase;
+import com.deadshotmdf.glccoinscommon.ModifyType;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -12,6 +16,7 @@ import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class GLCoinsS extends JavaPlugin implements CommandExecutor {
@@ -37,6 +42,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
             tryAgainOnStart();
 
         Bukkit.getPluginManager().registerEvents(new DeductTaxListener(), this);
+        this.getCommand("shit").setExecutor(this);
     }
 
     @Override
@@ -46,6 +52,28 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
 
     public static CoinDatabase getDatabase(){
         return database;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        if(sender instanceof Player)
+            return true;
+
+        switch(args[0].toLowerCase()) {
+            case "add":
+                database.modifyEntry(UUID.fromString(args[1]), Double.parseDouble(args[2]), ModifyType.ADD, null);
+                return true;
+            case "bulk":
+                Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                    database.fillRandomEntries(Integer.parseInt(args[1]));
+                });
+                return true;
+            case "retrive":
+                database.getEntryAsync(null, UUID.fromString(args[1]), null).thenAccept(value -> this.getLogger().info(args[1] + ": " + value));
+                return true;
+            default:
+                return true;
+        }
     }
 
     private void tryAgainOnStart() {
