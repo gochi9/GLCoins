@@ -42,7 +42,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
             tryAgainOnStart();
 
         Bukkit.getPluginManager().registerEvents(new DeductTaxListener(), this);
-        this.getCommand("shit").setExecutor(this);
+        this.getCommand("idk").setExecutor(this);
     }
 
     @Override

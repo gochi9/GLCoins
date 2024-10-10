@@ -12,4 +12,4 @@ libraries:
   - com.zaxxer:HikariCP:6.0.0
   - mysql:mysql-connector-java:8.0.13
 commands:
-  shit:
+  idk:
