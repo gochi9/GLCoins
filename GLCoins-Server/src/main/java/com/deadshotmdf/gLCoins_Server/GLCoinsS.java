@@ -54,6 +54,7 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
         return database;
     }
 
+    //Temporary command used until the proxy part is done
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if(sender instanceof Player)

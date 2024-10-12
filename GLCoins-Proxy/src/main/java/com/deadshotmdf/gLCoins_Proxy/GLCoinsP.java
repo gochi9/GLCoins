@@ -7,12 +7,12 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.slf4j.Logger;
 
+//Since the currency is shared across servers, this will be used by the site when a player buys GLCoins
 @Plugin(id = "glcoins-proxy", name = "GLCoins-Proxy", version = "1.0.0" , authors = {"DeadshotMDF"})
 public class GLCoinsP {
 
     private final ProxyServer server;
     private final Logger logger;
-    private InformationHolder informationHolder;
 
     @Inject
     public GLCoinsP(ProxyServer server, Logger logger) {
@@ -22,7 +22,6 @@ public class GLCoinsP {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        informationHolder = new InformationHolder(logger);
-        server.getEventManager().register(this, new PluginListener());
     }
+
 }

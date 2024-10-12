@@ -52,7 +52,6 @@ public class CoinDatabase {
      *
      * Runs everything on the main thread. Worst performance variant.
      * <p>
-     * For whatever the fuck reason we might need this idk.
      * <p>
      * @param initiator The player who requested the entry, this applies a 1.1 seconds cooldown for the initiator, use null if the initiator is non-player which won't check for a cooldown and won't apply one
      * @param uuid The UUID used for the query to retrieve the current GLCoins amount
@@ -82,7 +81,6 @@ public class CoinDatabase {
 
     /**
      * This method will extract the value from the database async, and will run the rest of the code back on minecraft's main thread.
-     * We can fully and safely use minecraft stuff without fucking shit up.
      * <p>
      * There is a one tick (50ms) delay at the very least until this method is fully ran after the value has been extract from the database. This is due to the fact that we need to schedule this code to run on the main thread again, and that only takes places on the next tick of the server. Nothing we can do around that.
      * <p>
