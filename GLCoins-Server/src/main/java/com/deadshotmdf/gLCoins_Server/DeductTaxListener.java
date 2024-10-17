@@ -39,7 +39,7 @@ public class DeductTaxListener implements Listener {
 
         if(offlinePlayer.isOnline())
             offlinePlayer.getPlayer().sendMessage(ChatColor.RED + "You have been taxed "
-                    + ChatColor.GOLD + tax * 100
+                    + ChatColor.GOLD + (tax * 100) + "%"
                     + ChatColor.RED + " of your total "
                     + ChatColor.AQUA + String.format("%s", totalValue)
                     + ChatColor.RED + " ("
