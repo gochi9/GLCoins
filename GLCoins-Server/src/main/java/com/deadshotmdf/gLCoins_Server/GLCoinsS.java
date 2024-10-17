@@ -1,5 +1,8 @@
 package com.deadshotmdf.gLCoins_Server;
 
+import com.deadshotmdf.GLC_GUIS.GLCGGUIS;
+import com.deadshotmdf.GLC_GUIS.Mayor.Enums.UpgradeType;
+import com.deadshotmdf.GLC_GUIS.Mayor.MayorManager;
 import com.deadshotmdf.gLCoins_Server.events.economy.EconomyEventsAvailableEvent;
 import com.deadshotmdf.glccoinscommon.CoinDatabase;
 import com.deadshotmdf.glccoinscommon.ModifyType;
@@ -14,6 +17,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,10 +26,13 @@ import java.util.logging.Logger;
 public class GLCoinsS extends JavaPlugin implements CommandExecutor {
 
     private static CoinDatabase database;
+    private MayorManager mayorManager;
 
     @Override
     public void onEnable() {
         database = new CoinDatabase(new BukkitMainThreadExecutor(this), this.getLogger());
+
+        findMayorManager();
 
         Logger logger = getLogger();
 
@@ -41,8 +48,28 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
         else
             tryAgainOnStart();
 
-        Bukkit.getPluginManager().registerEvents(new DeductTaxListener(), this);
+        Bukkit.getPluginManager().registerEvents(new DeductTaxListener(this), this);
         this.getCommand("idk").setExecutor(this);
+    }
+
+    //GLC-GUIS already depends on this plugin because it handles the tax payment deduction meaning that the plugin will be loaded after this one does
+    //But we also need to the mayor plugin to get the upgrade to lower the tax, and there's no real other way of detecting when that plugin is available apart from doing this
+    private void findMayorManager(){
+        Logger logger = getLogger();
+        new BukkitRunnable(){
+            public void run(){
+                try{
+                    MayorManager mayorManager1 = ((GLCGGUIS)Bukkit.getPluginManager().getPlugin("GLC-GUIS")).getMayorManager();
+                    mayorManager1.getUpgrade(UpgradeType.TAX);
+                    mayorManager = mayorManager1;
+                    logger.info("Found MayorManager");
+                    this.cancel();
+                }
+                catch (Throwable ignored){
+                    logger.warning("Failed to find MayorManager, searching again in a second...");
+                }
+            }
+        }.runTaskTimer(this, 20L, 20L);
     }
 
     @Override
@@ -97,6 +124,10 @@ public class GLCoinsS extends JavaPlugin implements CommandExecutor {
         getServer().getServicesManager().register(Economy.class, wrappedEco, this, ServicePriority.Highest);
         getLogger().info("Vault Events registered - Events can now be listened to.");
         Bukkit.getPluginManager().callEvent(new EconomyEventsAvailableEvent(wrappedEco));
+    }
+
+    public MayorManager getMayorManager() {
+        return mayorManager;
     }
 
 }
